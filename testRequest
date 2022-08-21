@@ -1,0 +1,63 @@
+import requests
+import json
+import time
+import threading
+
+startMove = None
+countMove = 0
+boolinAction = False
+
+def inAction(num):
+	global startMove
+	global countMove
+	r = requests.get('http://localhost/move')
+
+	sample = json.loads(r.text)
+	action = sample[0]
+	
+	print(countMove)
+
+	if(action['finish'] == '0'):
+		print('in action')
+		startMove = action
+		tmpurl = 'http://localhost/move/'+action['id']
+		if(boolinAction == False):
+			boolinAction == True
+		# r = requests.patch(tmpurl,data ={'id':action['id']})
+		print(r.text)
+		return
+	elif(action['finish'] == '1'):
+
+		return 'finish'
+	
+def move():
+	global countMove
+	r = requests.get('http://localhost/move/count')
+
+	sample = json.loads(r.text)
+	tmpMove = sample[0]
+
+	countMove = tmpMove['count']
+	while True:
+		r = requests.get('http://localhost/move/count')
+		sample = json.loads(r.text)
+		tmpMove = sample[0]
+		print(tmpMove['count'],countMove)
+		
+		if(tmpMove['count'] == countMove):
+			print('in')
+		else :
+			print('else')
+
+			returnStr = inAction(tmpMove['count'])
+			if(returnStr == 'finish'):
+				countMove = tmpMove['count']
+		print(startMove)
+
+		time.sleep(2)
+
+	
+t = threading.Thread(target = move)
+t.start()
+
+t.join()
